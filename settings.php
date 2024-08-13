@@ -66,7 +66,7 @@ if ($hassiteconfig) {
         $first_list_id = array_keys($lists)[0];
         $mailchimp_merge_fields = $api->get_merge_fields($first_list_id);
     }
-    
+
     $merge_field_options = [];
     foreach ($mailchimp_merge_fields as $field) {
         $merge_field_options[$field['tag']] = $field['name'];

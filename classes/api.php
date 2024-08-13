@@ -146,6 +146,7 @@ class api {
             $result = $this->request('GET', "lists/{$list_id}");
             return isset($result['id']);
         } catch (\moodle_exception $e) {
+            mtrace("Error validating list: " . $e->getMessage());
             return false;
         }
     }

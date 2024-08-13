@@ -54,7 +54,6 @@ Example:
 
 $verbose = !empty($options['verbose']);
 
-// Create an instance of the sync class and run the sync
 $sync = new \local_mailchimpsync\sync();
 $api = new \local_mailchimpsync\api();
 
@@ -62,5 +61,7 @@ $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
 if (!$api->validate_list($default_list_id)) {
     die("Error: Invalid default list ID. Please check your settings.\n");
 }
+
+$sync->sync_all_users();
 
 exit(0);

@@ -18,12 +18,12 @@ if ($hassiteconfig) {
     $lists = $api->get_lists();
 
     // Default List
-    $settings->add(new admin_setting_configselect(
+    $settings->add(new admin_setting_configtext(
         'local_mailchimpsync/default_list_id',
         get_string('default_list_id', 'local_mailchimpsync'),
         get_string('default_list_id_desc', 'local_mailchimpsync'),
         '',
-        $lists
+        PARAM_TEXT
     ));
 
     // Cohort to List Mapping

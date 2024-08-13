@@ -110,21 +110,34 @@ class sync {
     private function get_user_merge_fields($user) {
         $merge_fields = new \stdClass();
     
-        $field_mapping = get_config('local_mailchimpsync', 'field_mapping');
-        if ($field_mapping) {
-            $field_mapping = json_decode($field_mapping, true);
-            if (is_array($field_mapping)) {
-                foreach ($field_mapping as $moodle_field => $mailchimp_field) {
-                    if (isset($user->$moodle_field)) {
-                        $merge_fields->$mailchimp_field = $user->$moodle_field;
-                    }
-                }
+        // Mapiranje Moodle polja na MailChimp polja
+        $field_mapping = [
+            'address' => 'ADDRESS',
+            'city' => 'CITY',
+            'country' => 'COUNTRY',
+            'phone1' => 'PHONE',
+            'profile_field_birthday' => 'BIRTHDAY' // Pretpostavljajući da imate prilagođeno polje za rođendan
+        ];
+    
+        foreach ($field_mapping as $moodle_field => $mailchimp_field) {
+            if (strpos($moodle_field, 'profile_field_') === 0) {
+                // Prilagođeno polje profila
+                $field_name = substr($moodle_field, 14);
+                $value = $this->get_profile_field_value($user->id, $field_name);
+            } elseif (isset($user->$moodle_field)) {
+                $value = $user->$moodle_field;
+            } else {
+                $value = null;
+            }
+    
+            if ($value !== null) {
+                $merge_fields->$mailchimp_field = $value;
             }
         }
     
-        // Ensure FNAME and LNAME are always set
-        if (!isset($merge_fields->FNAME)) $merge_fields->FNAME = $user->firstname;
-        if (!isset($merge_fields->LNAME)) $merge_fields->LNAME = $user->lastname;
+        // Osigurajte da su FNAME i LNAME uvijek postavljeni
+        $merge_fields->FNAME = $user->firstname;
+        $merge_fields->LNAME = $user->lastname;
     
         mtrace("Merge fields for user {$user->id}: " . print_r($merge_fields, true));
         return $merge_fields;
@@ -153,4 +166,34 @@ class sync {
         $DB->insert_record('local_mailchimpsync_log', $log);
     }
 
+    public function sync_single_user($user) {
+        $cohort_list_mapping = $this->get_cohort_list_mapping();
+        $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
+    
+        $user_cohorts = $this->get_user_cohorts($user->id);
+        $synced = false;
+    
+        foreach ($user_cohorts as $cohort) {
+            if (isset($cohort_list_mapping[$cohort->id])) {
+                $list_id = $cohort_list_mapping[$cohort->id];
+                $this->sync_user_to_list($user, $list_id);
+                $synced = true;
+            }
+        }
+    
+        if (!$synced && $default_list_id) {
+            $this->sync_user_to_list($user, $default_list_id);
+        }
+    }
+    
+    private function get_user_cohorts($user_id) {
+        global $DB;
+        return $DB->get_records_sql(
+            "SELECT c.id, c.name
+             FROM {cohort} c
+             JOIN {cohort_members} cm ON c.id = cm.cohortid
+             WHERE cm.userid = ?",
+            array($user_id)
+        );
+    }
 }

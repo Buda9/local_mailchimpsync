@@ -75,3 +75,6 @@ $string['cohort_list'] = 'MailChimp List for Cohort {$a}';
 $string['cohort_list_desc'] = 'Select the MailChimp list for this cohort';
 $string['recent_logs'] = 'Recent Synchronization Logs';
 $string['sync_all_completed'] = 'Synchronization of all users completed';
+
+$string['mailchimpnotifications'] = 'MailChimp Notifications';
+$string['optoutmailchimp'] = 'Opt out of MailChimp notifications';

@@ -23,7 +23,7 @@ if ($action === 'sync_all') {
         echo $OUTPUT->notification(get_string('sync_success', 'local_mailchimpsync'), 'success');
     } catch (Exception $e) {
         echo $OUTPUT->notification(get_string('sync_failure', 'local_mailchimpsync'), 'error');
-        mtrace("Sync error: " . $e->getMessage());
+        //mtrace("Sync error: " . $e->getMessage());
     }
 }
 

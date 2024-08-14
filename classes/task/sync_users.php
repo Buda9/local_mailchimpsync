@@ -9,9 +9,9 @@ class sync_users extends \core\task\scheduled_task {
     }
 
     public function execute() {
-        mtrace('Starting MailChimp sync task...');
+        //mtrace('Starting MailChimp sync task...');
         $sync = new \local_mailchimpsync\sync();
         $sync->sync_all_users();
-        mtrace('MailChimp sync task completed.');
+        //mtrace('MailChimp sync task completed.');
     }
 }

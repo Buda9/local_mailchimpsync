@@ -16,7 +16,7 @@ class api {
 
     public function get_lists() {
         if (empty($this->api_key)) {
-            mtrace("MailChimp API key is not set.");
+            //mtrace("MailChimp API key is not set.");
             return array();
         }
         
@@ -31,14 +31,14 @@ class api {
                         'web_id' => $list['web_id']
                     ];
                 }
-                mtrace("API returned lists: " . print_r($lists, true));
+                //mtrace("API returned lists: " . print_r($lists, true));
                 return $lists;
             } else {
-                mtrace("Unexpected response format from MailChimp API: " . print_r($response, true));
+                //mtrace("Unexpected response format from MailChimp API: " . print_r($response, true));
                 return array();
             }
         } catch (\moodle_exception $e) {
-            mtrace("Error fetching MailChimp lists: " . $e->getMessage());
+            //mtrace("Error fetching MailChimp lists: " . $e->getMessage());
             return array();
         }
     }
@@ -71,9 +71,9 @@ class api {
     private function request($method, $endpoint, $data = null) {
         $url = $this->api_endpoint . '/' . $endpoint;
 
-        mtrace("API Request: $method $url");
+        //mtrace("API Request: $method $url");
         if ($data !== null) {
-            mtrace("Request Data: " . print_r($data, true));
+            //mtrace("Request Data: " . print_r($data, true));
         }
 
         $options = [
@@ -104,10 +104,10 @@ class api {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
 
-        mtrace("API Response Code: $http_code");
-        mtrace("API Response: $response");
+        //mtrace("API Response Code: $http_code");
+        //mtrace("API Response: $response");
         if ($error) {
-            mtrace("API Error: $error");
+            //mtrace("API Error: $error");
         }
     
         // Dodajte ovo za logiranje
@@ -153,7 +153,7 @@ class api {
             $result = $this->request('GET', "lists/{$list_id}");
             return isset($result['id']);
         } catch (\moodle_exception $e) {
-            mtrace("Error validating list: " . $e->getMessage());
+            //mtrace("Error validating list: " . $e->getMessage());
             return false;
         }
     }

@@ -16,7 +16,7 @@ class sync_cohort extends \core\task\adhoc_task {
         $cohort_list_mapping = json_decode(get_config('local_mailchimpsync', 'cohort_list_mapping'), true) ?: array();
 
         if (!isset($cohort_list_mapping[$cohort_id])) {
-            mtrace("No MailChimp list mapped for cohort ID: $cohort_id");
+            //mtrace("No MailChimp list mapped for cohort ID: $cohort_id");
             return;
         }
 

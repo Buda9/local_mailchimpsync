@@ -16,17 +16,17 @@ class sync {
 
         $api_key = get_config('local_mailchimpsync', 'apikey');
         if (empty($api_key)) {
-            mtrace("MailChimp API key is not set. Aborting synchronization.");
+            //mtrace("MailChimp API key is not set. Aborting synchronization.");
             return;
         }
     
-        mtrace("Starting MailChimp synchronization...");
+        //mtrace("Starting MailChimp synchronization...");
     
         $cohort_list_mapping = $this->get_cohort_list_mapping();
         $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
     
         if (empty($cohort_list_mapping) && empty($default_list_id)) {
-            mtrace("Error: No cohort mapping or default list configured. Please check your settings.");
+            //mtrace("Error: No cohort mapping or default list configured. Please check your settings.");
             return;
         }
     
@@ -54,7 +54,7 @@ class sync {
             $this->remove_user_from_mailchimp($deleted_user);
         }
     
-        mtrace("MailChimp synchronization completed.");
+        //mtrace("MailChimp synchronization completed.");
     }
 
     private function sync_user_batch($users, $cohort_list_mapping, $default_list_id) {
@@ -86,7 +86,7 @@ class sync {
 
     private function sync_user_to_list($user, $list_id) {
         if (!$this->is_valid_email($user->email)) {
-            mtrace("Skipping user {$user->id} due to invalid email: {$user->email}");
+            //mtrace("Skipping user {$user->id} due to invalid email: {$user->email}");
             $this->log_sync($user->id, $list_id, 'skipped', 'error', 'Invalid email address');
             $this->update_sync_field($user->id, false);
             return;
@@ -96,11 +96,11 @@ class sync {
     
         try {
             $result = $this->api->add_or_update_list_member($list_id, $user->email, $merge_fields);
-            mtrace("User {$user->id} synced to list {$list_id}");
+            //mtrace("User {$user->id} synced to list {$list_id}");
             $this->log_sync($user->id, $list_id, 'synced');
             $this->update_sync_field($user->id, true);
         } catch (\moodle_exception $e) {
-            mtrace("Error syncing user {$user->id} to list {$list_id}: " . $e->getMessage());
+            //mtrace("Error syncing user {$user->id} to list {$list_id}: " . $e->getMessage());
             $this->log_sync($user->id, $list_id, 'failed', 'error', $e->getMessage());
             $this->update_sync_field($user->id, false);
         }
@@ -160,7 +160,7 @@ class sync {
         $merge_fields->FNAME = $user->firstname;
         $merge_fields->LNAME = $user->lastname;
     
-        mtrace("Merge fields for user {$user->id}: " . print_r($merge_fields, true));
+        //mtrace("Merge fields for user {$user->id}: " . print_r($merge_fields, true));
         return $merge_fields;
     }
     
@@ -259,10 +259,10 @@ class sync {
         foreach ($lists_to_check as $list_id) {
             try {
                 $api->delete_list_member($list_id, $user->email);
-                mtrace("Removed user {$user->id} from MailChimp list {$list_id}");
+                //mtrace("Removed user {$user->id} from MailChimp list {$list_id}");
                 $removed = true;
             } catch (\moodle_exception $e) {
-                mtrace("Error removing user {$user->id} from MailChimp list {$list_id}: " . $e->getMessage());
+                //mtrace("Error removing user {$user->id} from MailChimp list {$list_id}: " . $e->getMessage());
             }
         }
 

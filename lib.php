@@ -19,3 +19,11 @@ function local_mailchimpsync_user_preferences() {
     );
     return $preferences;
 }
+
+function local_mailchimpsync_message_provider() {
+    return [
+        'mailchimp_notifications' => [
+            'capability' => 'local/mailchimpsync:receivemessages'
+        ],
+    ];
+}

@@ -2,6 +2,8 @@
 require_once('../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
+admin_externalpage_setup('local_mailchimpsync_sync');
+
 require_login();
 require_capability('moodle/site:config', context_system::instance());
 
@@ -13,6 +15,17 @@ $PAGE->set_heading(get_string('sync_page_heading', 'local_mailchimpsync'));
 echo $OUTPUT->header();
 
 $action = optional_param('action', '', PARAM_ALPHA);
+
+if ($action === 'sync_all') {
+    $sync = new \local_mailchimpsync\sync();
+    try {
+        $sync->sync_all_users();
+        echo $OUTPUT->notification(get_string('sync_success', 'local_mailchimpsync'), 'success');
+    } catch (Exception $e) {
+        echo $OUTPUT->notification(get_string('sync_failure', 'local_mailchimpsync'), 'error');
+        mtrace("Sync error: " . $e->getMessage());
+    }
+}
 
 if ($action === 'sync_all') {
     $sync = new \local_mailchimpsync\sync();

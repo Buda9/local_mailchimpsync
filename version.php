@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_mailchimpsync';
-$plugin->version = 2023081400;
+$plugin->version = 2024081802;
 $plugin->requires = 2022112800; // Moodle 4.1 and up
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->release = 'v0.2';
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = 'v1.0';

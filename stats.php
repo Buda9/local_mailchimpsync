@@ -1,41 +1,42 @@
 <?php
 require_once('../../config.php');
-require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir.'/adminlib.php');
 
-admin_externalpage_setup('mailchimpsyncstats');
-$PAGE->set_title(get_string('syncstats', 'local_mailchimpsync'));
-$PAGE->set_heading(get_string('syncstats', 'local_mailchimpsync'));
+admin_externalpage_setup('local_mailchimpsync_stats');
+
+$PAGE->set_url('/local/mailchimpsync/stats.php');
+$PAGE->set_title(get_string('stats_page_title', 'local_mailchimpsync'));
+$PAGE->set_heading(get_string('stats_page_heading', 'local_mailchimpsync'));
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('syncstats', 'local_mailchimpsync'));
-$recovery_manager = new \local_mailchimpsync\recovery_manager();
-// Get sync statistics
-$total_syncs = $DB->count_records('local_mailchimpsync_log');
-$successful_syncs = $DB->count_records('local_mailchimpsync_log', ['status' => 'success']);
-$failed_syncs = $DB->count_records('local_mailchimpsync_log', ['status' => 'failed']);
-// Get recent sync attempts
-$recent_syncs = $DB->get_records('local_mailchimpsync_log', null, 'timecreated DESC', '*', 0, 10);
+
 // Display statistics
-echo html_writer::tag('h3', get_string('syncoverview', 'local_mailchimpsync'));
-echo html_writer::start_tag('ul');
-echo html_writer::tag('li', get_string('totalsyncs', 'local_mailchimpsync') . ': ' . $total_syncs);
-echo html_writer::tag('li', get_string('successfulsyncs', 'local_mailchimpsync') . ': ' . $successful_syncs);
-echo html_writer::tag('li', get_string('failedsyncs', 'local_mailchimpsync') . ': ' . $failed_syncs);
-echo html_writer::end_tag('ul');
-// Display recent sync attempts
-echo html_writer::tag('h3', get_string('recentsyncs', 'local_mailchimpsync'));
+$total_synced = $DB->count_records('local_mailchimpsync_users');
+$total_users = $DB->count_records('user', ['deleted' => 0, 'suspended' => 0]);
+$sync_logs = $DB->get_records('local_mailchimpsync_log', null, 'timecreated DESC', '*', 0, 10);
+
+echo html_writer::tag('h3', get_string('sync_statistics', 'local_mailchimpsync'));
+echo html_writer::tag('p', get_string('total_synced_users', 'local_mailchimpsync', $total_synced));
+echo html_writer::tag('p', get_string('total_moodle_users', 'local_mailchimpsync', $total_users));
+echo html_writer::tag('p', get_string('sync_percentage', 'local_mailchimpsync', round(($total_synced / $total_users) * 100, 2)));
+
+echo html_writer::tag('h3', get_string('recent_sync_logs', 'local_mailchimpsync'));
 $table = new html_table();
 $table->head = [
-get_string('user'),
-get_string('status'),
-get_string('timecreated', 'local_mailchimpsync')
+    get_string('user'),
+    get_string('action', 'local_mailchimpsync'),
+    get_string('status', 'local_mailchimpsync'),
+    get_string('time', 'local_mailchimpsync')
 ];
-foreach ($recent_syncs as $sync) {
-$user = $DB->get_record('user', ['id' => $sync->userid]);
-$table->data[] = [
-fullname($user),
-$sync->status,
-userdate($sync->timecreated)
-];
+foreach ($sync_logs as $log) {
+    $user = $DB->get_record('user', ['id' => $log->userid]);
+    $table->data[] = [
+        fullname($user),
+        $log->action,
+        $log->status,
+        userdate($log->timecreated)
+    ];
 }
 echo html_writer::table($table);
+
 echo $OUTPUT->footer();

@@ -28,12 +28,21 @@ function xmldb_local_mailchimpsync_upgrade($oldversion) {
     global $DB;
     $dbman = $DB->get_manager();
 
-    if ($oldversion < 2023081400) {
+    if ($oldversion < 2024081801) {
+        // Define table local_mailchimpsync_users
+        $table = new xmldb_table('local_mailchimpsync_users');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
 
-        // Define table local_mailchimpsync_log to be created.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table local_mailchimpsync_log
         $table = new xmldb_table('local_mailchimpsync_log');
-
-        // Adding fields to table local_mailchimpsync_log.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('listid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
@@ -41,21 +50,15 @@ function xmldb_local_mailchimpsync_upgrade($oldversion) {
         $table->add_field('status', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('message', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-
-        // Adding keys to table local_mailchimpsync_log.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
-
-        // Adding indexes to table local_mailchimpsync_log.
         $table->add_index('timecreated', XMLDB_INDEX_NOTUNIQUE, ['timecreated']);
 
-        // Conditionally launch create table for local_mailchimpsync_log.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
 
-        // MailChimp sync savepoint reached.
-        upgrade_plugin_savepoint(true, 2023081400, 'local', 'mailchimpsync');
+        upgrade_plugin_savepoint(true, 2024081801, 'local', 'mailchimpsync');
     }
 
     return true;

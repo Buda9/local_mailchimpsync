@@ -13,6 +13,12 @@ class sync {
 
     public function sync_all_users() {
         global $DB;
+
+        $api_key = get_config('local_mailchimpsync', 'apikey');
+        if (empty($api_key)) {
+            mtrace("MailChimp API key is not set. Aborting synchronization.");
+            return;
+        }
     
         mtrace("Starting MailChimp synchronization...");
     

@@ -9,29 +9,36 @@ class api {
 
     public function __construct() {
         $this->api_key = get_config('local_mailchimpsync', 'apikey');
-        error_log("MailChimp API Key: " . substr($this->api_key, 0, 5) . '...');  // Logira prvih 5 znakova API ključa
-        $this->api_endpoint = str_replace('<dc>', substr($this->api_key, strpos($this->api_key, '-')+1), $this->api_endpoint);
-        error_log("MailChimp API Endpoint: " . $this->api_endpoint);
+        if (!empty($this->api_key)) {
+            $this->api_endpoint = str_replace('<dc>', substr($this->api_key, strpos($this->api_key, '-')+1), $this->api_endpoint);
+        }
     }
 
     public function get_lists() {
         if (empty($this->api_key)) {
-            throw new \moodle_exception('apierror', 'local_mailchimpsync', '', 'API key not set.');
+            mtrace("MailChimp API key is not set.");
+            return array();
         }
-        $response = $this->request('GET', 'lists?fields=lists.id,lists.name,lists.web_id&count=1000');
         
-        if (isset($response['lists']) && is_array($response['lists'])) {
-            $lists = array();
-            foreach ($response['lists'] as $list) {
-                $lists[$list['id']] = [
-                    'name' => $list['name'],
-                    'web_id' => $list['web_id']
-                ];
+        try {
+            $response = $this->request('GET', 'lists?fields=lists.id,lists.name,lists.web_id&count=1000');
+            
+            if (isset($response['lists']) && is_array($response['lists'])) {
+                $lists = array();
+                foreach ($response['lists'] as $list) {
+                    $lists[$list['id']] = [
+                        'name' => $list['name'],
+                        'web_id' => $list['web_id']
+                    ];
+                }
+                mtrace("API returned lists: " . print_r($lists, true));
+                return $lists;
+            } else {
+                mtrace("Unexpected response format from MailChimp API: " . print_r($response, true));
+                return array();
             }
-            mtrace("API returned lists: " . print_r($lists, true));
-            return $lists;
-        } else {
-            mtrace("Unexpected response format from MailChimp API: " . print_r($response, true));
+        } catch (\moodle_exception $e) {
+            mtrace("Error fetching MailChimp lists: " . $e->getMessage());
             return array();
         }
     }

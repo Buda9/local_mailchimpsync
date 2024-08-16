@@ -41,6 +41,15 @@ Once configured, the plugin will automatically synchronize users based on the sc
 
 This plugin is currently in beta. While it is functional, it may contain bugs or incomplete features. Use in production environments at your own risk.
 
+## Screenshots
+
+![Screenshot_199](https://github.com/user-attachments/assets/65d205a5-9abb-453b-82f4-36c3b0c4c1d6)
+![Screenshot_200](https://github.com/user-attachments/assets/52a73705-88cc-4c85-bc84-93fc790ff13e)
+![Screenshot_201](https://github.com/user-attachments/assets/cdf894a4-b5c2-47b3-9f13-2e84afd907af)
+![Screenshot_202](https://github.com/user-attachments/assets/2be21cf5-9932-453f-897b-12007276c56c)
+![Screenshot_203](https://github.com/user-attachments/assets/42253550-208b-4191-972b-c1b82fe9d885)
+
+
 ## Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.

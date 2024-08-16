@@ -19,10 +19,10 @@ class api {
             //mtrace("MailChimp API key is not set.");
             return array();
         }
-        
+
         try {
             $response = $this->request('GET', 'lists?fields=lists.id,lists.name,lists.web_id&count=1000');
-            
+
             if (isset($response['lists']) && is_array($response['lists'])) {
                 $lists = array();
                 foreach ($response['lists'] as $list) {
@@ -53,7 +53,7 @@ class api {
         }
         return $this->request('POST', "lists/$list_id/members", $data);
     }
-    
+
     public function update_list_member($list_id, $subscriber_hash, $merge_fields = null, $status = 'subscribed') {
         $data = [
             'status' => $status,
@@ -71,9 +71,9 @@ class api {
     private function request($method, $endpoint, $data = null) {
         $url = $this->api_endpoint . '/' . $endpoint;
 
-        //mtrace("API Request: $method $url");
+        mtrace("MailChimp API Request: $method $url");
         if ($data !== null) {
-            //mtrace("Request Data: " . print_r($data, true));
+            mtrace("Request Data: " . print_r($data, true));
         }
 
         $options = [
@@ -86,39 +86,33 @@ class api {
             ],
             CURLOPT_VERBOSE => true
         ];
-    
+
         if ($data !== null) {
             $options[CURLOPT_POSTFIELDS] = json_encode($data);
         }
-    
+
         $ch = curl_init();
         curl_setopt_array($ch, $options);
-    
-        // Dodajte ovo za logiranje
-        error_log("MailChimp API Request: $method $url");
+
+        // logiranje
+        mtrace("MailChimp API Request: $method $url");
         if ($data !== null) {
-            error_log("MailChimp API Request Data: " . json_encode($data));
+            mtrace("MailChimp API Request Data: " . json_encode($data));
         }
-    
+
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
 
-        //mtrace("API Response Code: $http_code");
-        //mtrace("API Response: $response");
+        // logiranje
+        mtrace("MailChimp API Response Code: $http_code");
+        mtrace("MailChimp API Response: $response");
         if ($error) {
-            //mtrace("API Error: $error");
+            mtrace("MailChimp API Error: $error");
         }
-    
-        // Dodajte ovo za logiranje
-        error_log("MailChimp API Response Code: $http_code");
-        error_log("MailChimp API Response: $response");
-        if ($error) {
-            error_log("MailChimp API Error: $error");
-        }
-    
+
         curl_close($ch);
-    
+
         if ($http_code >= 200 && $http_code < 300) {
             return json_decode($response, true);
         } else {

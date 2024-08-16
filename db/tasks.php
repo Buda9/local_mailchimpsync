@@ -28,7 +28,7 @@ $tasks = [
     [
         'classname' => 'local_mailchimpsync\task\sync_users',
         'blocking' => 0,
-        'minute' => '*/1',
+        'minute' => '*/15',
         'hour' => '*',
         'day' => '*',
         'month' => '*',

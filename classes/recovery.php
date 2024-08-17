@@ -16,7 +16,7 @@ class recovery_manager {
         $record->userid = $user_id;
         $record->timecreated = time();
         $record->status = $status;
-        
+
         $this->db->insert_record('local_mailchimpsync_log', $record);
     }
 

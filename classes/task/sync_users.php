@@ -15,15 +15,15 @@ class sync_users extends \core\task\scheduled_task {
 
         if ($lock = $lockfactory->get_lock('local_mailchimpsync_sync', 30)) {
             try {
-                mtrace('Starting MailChimp sync task...');
+                //mtrace('Starting MailChimp sync task...');
                 $sync = new \local_mailchimpsync\sync();
                 $sync->sync_all_users();
-                mtrace('MailChimp sync task completed.');
+                //mtrace('MailChimp sync task completed.');
             } finally {
                 $lock->release();
             }
         } else {
-            mtrace('Cannot obtain task lock');
+            //mtrace('Cannot obtain task lock');
         }
     }
 }

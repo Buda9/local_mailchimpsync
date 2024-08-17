@@ -19,47 +19,47 @@ class sync {
             //mtrace("MailChimp API key is not set. Aborting synchronization.");
             return;
         }
-    
+
         //mtrace("Starting MailChimp synchronization...");
-    
+
         $cohort_list_mapping = $this->get_cohort_list_mapping();
         $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
-    
+
         if (empty($cohort_list_mapping) && empty($default_list_id)) {
             //mtrace("Error: No cohort mapping or default list configured. Please check your settings.");
             return;
         }
-    
+
         $users = $DB->get_records_sql(
             "SELECT u.*, m.timemodified as mailchimp_sync_time
              FROM {user} u
              LEFT JOIN {local_mailchimpsync_users} m ON u.id = m.userid
-             WHERE u.deleted = 0 AND u.suspended = 0 AND 
+             WHERE u.deleted = 0 AND u.suspended = 0 AND
              (m.timemodified IS NULL OR u.timemodified > m.timemodified)"
         );
-    
+
         foreach ($users as $user) {
             $this->sync_single_user($user);
         }
-    
+
         // Check for deleted users
         $deleted_users = $DB->get_records_sql(
-            "SELECT m.* 
+            "SELECT m.*
              FROM {local_mailchimpsync_users} m
              LEFT JOIN {user} u ON m.userid = u.id
              WHERE u.id IS NULL OR u.deleted = 1 OR u.suspended = 1"
         );
-    
+
         foreach ($deleted_users as $deleted_user) {
             $this->remove_user_from_mailchimp($deleted_user);
         }
-    
+
         //mtrace("MailChimp synchronization completed.");
     }
 
     private function sync_user_batch($users, $cohort_list_mapping, $default_list_id) {
         global $DB;
-    
+
         foreach ($users as $user) {
             $user_cohorts = $DB->get_records_sql(
                 "SELECT c.id, c.name
@@ -68,7 +68,7 @@ class sync {
                  WHERE cm.userid = ?",
                 array($user->id)
             );
-    
+
             $synced = false;
             foreach ($user_cohorts as $cohort) {
                 if (isset($cohort_list_mapping[$cohort->id])) {
@@ -77,7 +77,7 @@ class sync {
                     $synced = true;
                 }
             }
-    
+
             if (!$synced && $default_list_id) {
                 $this->sync_user_to_list($user, $default_list_id);
             }
@@ -91,9 +91,9 @@ class sync {
             $this->update_sync_field($user->id, false);
             return;
         }
-    
+
         $merge_fields = $this->get_user_merge_fields($user);
-    
+
         try {
             $result = $this->api->add_or_update_list_member($list_id, $user->email, $merge_fields);
             //mtrace("User {$user->id} synced to list {$list_id}");
@@ -131,7 +131,7 @@ class sync {
 
     private function get_user_merge_fields($user) {
         $merge_fields = new \stdClass();
-    
+
         // Mapiranje Moodle polja na MailChimp polja
         $field_mapping = [
             'address' => 'ADDRESS',
@@ -139,7 +139,7 @@ class sync {
             'country' => 'COUNTRY',
             'phone1' => 'PHONE'
         ];
-    
+
         foreach ($field_mapping as $moodle_field => $mailchimp_field) {
             if (strpos($moodle_field, 'profile_field_') === 0) {
                 // Prilagođeno polje profila
@@ -150,20 +150,20 @@ class sync {
             } else {
                 $value = null;
             }
-    
+
             if ($value !== null) {
                 $merge_fields->$mailchimp_field = $value;
             }
         }
-    
+
         // Osigurajte da su FNAME i LNAME uvijek postavljeni
         $merge_fields->FNAME = $user->firstname;
         $merge_fields->LNAME = $user->lastname;
-    
+
         //mtrace("Merge fields for user {$user->id}: " . print_r($merge_fields, true));
         return $merge_fields;
     }
-    
+
     private function get_profile_field_value($userid, $field_shortname) {
         global $DB;
         $sql = "SELECT d.data
@@ -190,10 +190,10 @@ class sync {
     public function sync_single_user($user) {
         $cohort_list_mapping = $this->get_cohort_list_mapping();
         $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
-    
+
         $user_cohorts = $this->get_user_cohorts($user->id);
         $synced = false;
-    
+
         foreach ($user_cohorts as $cohort) {
             if (isset($cohort_list_mapping[$cohort->id])) {
                 $list_id = $cohort_list_mapping[$cohort->id];
@@ -201,12 +201,12 @@ class sync {
                 $synced = true;
             }
         }
-    
+
         if (!$synced && $default_list_id) {
             $this->sync_user_to_list($user, $default_list_id);
             $synced = true;
         }
-    
+
         if ($synced) {
             $this->update_sync_field($user->id, true);
         }
@@ -228,13 +228,13 @@ class sync {
 
     private function update_sync_field($user_id, $is_synced) {
         global $DB;
-        
+
         $use_sync_field = get_config('local_mailchimpsync', 'use_sync_field');
         $sync_field_id = get_config('local_mailchimpsync', 'sync_field');
-        
+
         if ($use_sync_field && $sync_field_id) {
             $field_data = $DB->get_record('user_info_data', ['userid' => $user_id, 'fieldid' => $sync_field_id]);
-            
+
             if ($field_data) {
                 $field_data->data = $is_synced ? 1 : 0;
                 $DB->update_record('user_info_data', $field_data);

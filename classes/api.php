@@ -71,10 +71,10 @@ class api {
     private function request($method, $endpoint, $data = null) {
         $url = $this->api_endpoint . '/' . $endpoint;
 
-        mtrace("MailChimp API Request: $method $url");
-        if ($data !== null) {
-            mtrace("Request Data: " . print_r($data, true));
-        }
+        //mtrace("MailChimp API Request: $method $url");
+        //if ($data !== null) {
+        //    mtrace("Request Data: " . print_r($data, true));
+        //}
 
         $options = [
             CURLOPT_URL => $url,
@@ -95,21 +95,21 @@ class api {
         curl_setopt_array($ch, $options);
 
         // logiranje
-        mtrace("MailChimp API Request: $method $url");
-        if ($data !== null) {
-            mtrace("MailChimp API Request Data: " . json_encode($data));
-        }
+        //mtrace("MailChimp API Request: $method $url");
+        //if ($data !== null) {
+        //    mtrace("MailChimp API Request Data: " . json_encode($data));
+        //}
 
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
 
         // logiranje
-        mtrace("MailChimp API Response Code: $http_code");
-        mtrace("MailChimp API Response: $response");
-        if ($error) {
-            mtrace("MailChimp API Error: $error");
-        }
+        //mtrace("MailChimp API Response Code: $http_code");
+        //mtrace("MailChimp API Response: $response");
+        //if ($error) {
+        //    mtrace("MailChimp API Error: $error");
+        //}
 
         curl_close($ch);
 

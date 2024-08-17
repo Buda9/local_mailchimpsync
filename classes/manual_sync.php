@@ -16,7 +16,7 @@ if ($form->is_cancelled()) {
     $task = new \local_mailchimpsync\task\sync_users();
     $task->set_custom_data(['manual' => true]);
     \core\task\manager::queue_adhoc_task($task);
-    
+
     redirect(new moodle_url('/admin/settings.php', ['section' => 'local_mailchimpsync']), get_string('synctaskqueued', 'local_mailchimpsync'));
 }
 

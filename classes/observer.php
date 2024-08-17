@@ -8,7 +8,7 @@ class observer {
         $user = \core_user::get_user($event->objectid);
         $sync = new sync();
         $sync->sync_single_user($user);
-        
+
         // Send notification
         $message = new \core\message\message();
         $message->component = 'local_mailchimpsync';
@@ -21,7 +21,7 @@ class observer {
         $message->fullmessagehtml = '';
         $message->smallmessage = get_string('sync_notification_small', 'local_mailchimpsync');
         $message->notification = 1;
-        
+
         message_send($message);
     }
 

@@ -61,5 +61,28 @@ function xmldb_local_mailchimpsync_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024081801, 'local', 'mailchimpsync');
     }
 
+    if ($oldversion < 2024081803) {
+
+        // Define table local_mailchimpsync_config to be created.
+        $table = new xmldb_table('local_mailchimpsync_config');
+
+        // Adding fields to table local_mailchimpsync_config.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('value', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        // Adding keys to table local_mailchimpsync_config.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('name', XMLDB_KEY_UNIQUE, ['name']);
+
+        // Conditionally launch create table for local_mailchimpsync_config.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // MailChimp sync savepoint reached.
+        upgrade_plugin_savepoint(true, 2024081803, 'local', 'mailchimpsync');
+    }
+
     return true;
 }

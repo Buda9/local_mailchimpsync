@@ -14,18 +14,18 @@ class sync {
     public function sync_all_users() {
         global $DB;
 
-        mtrace("Starting MailChimp synchronization...");
+        //mtrace("Starting MailChimp synchronization...");
 
         $cohort_list_mapping = $this->get_cohort_list_mapping();
         $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
 
         if (empty($cohort_list_mapping) && empty($default_list_id)) {
-            mtrace("Error: No cohort mapping or default list configured. Please check your settings.");
+            //mtrace("Error: No cohort mapping or default list configured. Please check your settings.");
             return;
         }
 
-        mtrace("Default list ID: " . $default_list_id);
-        mtrace("Cohort list mapping: " . print_r($cohort_list_mapping, true));
+        //mtrace("Default list ID: " . $default_list_id);
+        //mtrace("Cohort list mapping: " . print_r($cohort_list_mapping, true));
 
         // Get the timestamp of the last sync
         $last_sync_time = get_config('local_mailchimpsync', 'last_sync_time');
@@ -59,7 +59,7 @@ class sync {
         // Update last sync time
         set_config('last_sync_time', $current_time, 'local_mailchimpsync');
 
-        mtrace("MailChimp synchronization completed. Synced: $synced_count, Errors: $error_count");
+        //mtrace("MailChimp synchronization completed. Synced: $synced_count, Errors: $error_count");
 
         return array('synced' => $synced_count, 'errors' => $error_count);
     }
@@ -98,28 +98,28 @@ class sync {
         return $synced;
     }
 
-    private function sync_user_to_list($user, $list_id) {
-        if (!$this->is_valid_email($user->email)) {
-            mtrace("Skipping user {$user->id} due to invalid email: {$user->email}");
-            $this->log_sync($user->id, $list_id, 'skipped', 'error', 'Invalid email address');
-            return false;
-        }
+        private function sync_user_to_list($user, $list_id) {
+            if (!$this->is_valid_email($user->email)) {
+                //mtrace("Skipping user {$user->id} due to invalid email: {$user->email}");
+                $this->log_sync($user->id, $list_id, 'skipped', 'error', 'Invalid email address');
+                return false;
+            }
 
-        $merge_fields = $this->get_user_merge_fields($user);
+            $merge_fields = $this->get_user_merge_fields($user);
 
-        try {
-            $result = $this->api->add_or_update_list_member($list_id, $user->email, $merge_fields);
-            mtrace("User {$user->id} synced to list {$list_id}");
-            $this->log_sync($user->id, $list_id, 'synced');
-            $this->update_sync_field($user->id, true);
-            return true;
-        } catch (\moodle_exception $e) {
-            mtrace("Error syncing user {$user->id} to list {$list_id}: " . $e->getMessage());
-            $this->log_sync($user->id, $list_id, 'failed', 'error', $e->getMessage());
-            $this->update_sync_field($user->id, false);
-            return false;
+            try {
+                $result = $this->api->add_or_update_list_member($list_id, $user->email, $merge_fields);
+                //mtrace("User {$user->id} synced to list {$list_id}");
+                $this->log_sync($user->id, $list_id, 'synced');
+                $this->update_sync_field($user->id, true);
+                return true;
+            } catch (\moodle_exception $e) {
+                //mtrace("Error syncing user {$user->id} to list {$list_id}: " . $e->getMessage());
+                $this->log_sync($user->id, $list_id, 'failed', 'error', $e->getMessage());
+                $this->update_sync_field($user->id, false);
+                return false;
+            }
         }
-    }
 
     private function get_cohort_list_mapping() {
         $mapping = array();
@@ -146,8 +146,8 @@ class sync {
 
     private function get_user_merge_fields($user) {
         $merge_fields = new \stdClass();
-
         $field_mapping = get_config('local_mailchimpsync', 'field_mapping');
+
         if ($field_mapping) {
             $field_mapping = json_decode($field_mapping, true);
             if (is_array($field_mapping)) {
@@ -163,7 +163,7 @@ class sync {
         if (!isset($merge_fields->FNAME)) $merge_fields->FNAME = $user->firstname;
         if (!isset($merge_fields->LNAME)) $merge_fields->LNAME = $user->lastname;
 
-        mtrace("Merge fields for user {$user->id}: " . print_r($merge_fields, true));
+        //mtrace("Merge fields for user {$user->id}: " . print_r($merge_fields, true));
         return $merge_fields;
     }
 
@@ -266,6 +266,26 @@ class sync {
 
         // Update sync field
         $this->update_sync_field($user->id, false);
+    }
+
+    public function sync_single_user($user) {
+        $cohort_list_mapping = $this->get_cohort_list_mapping();
+        $default_list_id = get_config('local_mailchimpsync', 'default_list_id');
+
+        $user_cohorts = $this->get_user_cohorts($user->id);
+        $synced = false;
+
+        foreach ($user_cohorts as $cohort) {
+            if (isset($cohort_list_mapping[$cohort->id])) {
+                $list_id = $cohort_list_mapping[$cohort->id];
+                $this->sync_user_to_list($user, $list_id);
+                $synced = true;
+            }
+        }
+
+        if (!$synced && $default_list_id) {
+            $this->sync_user_to_list($user, $default_list_id);
+        }
     }
 
     private function get_user_cohorts($user_id) {
